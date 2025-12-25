@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Playstore Catalog</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="wrap header">
+    <div class="brand">PLAYSTORE 95</div>
+
+    <div class="controls">
+      <select id="region">
+        <option value="TR">Регион: TR</option>
+        <option value="US">Регион: US</option>
+      </select>
+
+      <input id="q" placeholder="Поиск по названию" />
+      <button id="apply">Применить</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="grid" class="grid"></div>
+
+    <div class="pager">
+      <button id="prev">←</button>
+      <div id="pageLabel">Стр. 1</div>
+      <button id="next">→</button>
+    </div>
+  </main>
+
+  <!-- Buy modal -->
+  <div id="modalBackdrop" class="backdrop hidden">
+    <div class="modal">
+      <div class="modalTitle">Купить</div>
+      <div id="modalText" class="modalText"></div>
+
+      <div class="modalBtns">
+        <button id="buyTg" class="btnPrimary">Telegram</button>
+        <button id="buyWa" class="btnGreen">WhatsApp</button>
+      </div>
+
+      <button id="closeModal" class="btnGhost">Закрыть</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
