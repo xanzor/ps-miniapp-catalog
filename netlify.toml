@@ -1,2 +1,5 @@
-[functions]
-  directory = "netlify/functions"
+[[redirects]]
+  from = "/api/*"
+  to = "https://ps-directus.onrender.com/:splat"
+  status = 200
+  force = true
