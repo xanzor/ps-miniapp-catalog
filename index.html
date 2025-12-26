@@ -5,19 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Playstore Catalog</title>
   <link rel="stylesheet" href="styles.css" />
+  <meta name="color-scheme" content="dark" />
 </head>
 <body>
   <header class="wrap header">
-    <div class="brand">PLAYSTORE 95</div>
+    <div class="topRow">
+      <div class="brand" id="brandTitle">PLAYSTORE 95</div>
+    </div>
 
     <div class="controls">
-      <select id="region">
+      <select id="region" aria-label="Регион">
         <option value="TR">Регион: TR</option>
         <option value="US">Регион: US</option>
       </select>
 
-      <input id="q" placeholder="Поиск по названию" />
+      <input id="q" placeholder="Поиск по названию" autocomplete="off" />
       <button id="apply">Применить</button>
+      <button id="reset" class="ghost">Сброс</button>
+    </div>
+
+    <div class="hintRow">
+      <div class="hint" id="hintText">Каталог загружается из Directus</div>
     </div>
   </header>
 
@@ -25,14 +33,14 @@
     <div id="grid" class="grid"></div>
 
     <div class="pager">
-      <button id="prev">←</button>
-      <div id="pageLabel">Стр. 1</div>
-      <button id="next">→</button>
+      <button id="prev" class="pagerBtn" aria-label="Предыдущая страница">←</button>
+      <div id="pageLabel" class="pageLabel">Стр. 1</div>
+      <button id="next" class="pagerBtn" aria-label="Следующая страница">→</button>
     </div>
   </main>
 
   <!-- Buy modal -->
-  <div id="modalBackdrop" class="backdrop hidden">
+  <div id="modalBackdrop" class="backdrop hidden" role="dialog" aria-modal="true">
     <div class="modal">
       <div class="modalTitle">Купить</div>
       <div id="modalText" class="modalText"></div>
@@ -42,6 +50,7 @@
         <button id="buyWa" class="btnGreen">WhatsApp</button>
       </div>
 
+      <button id="copyText" class="btnGhost">Скопировать текст</button>
       <button id="closeModal" class="btnGhost">Закрыть</button>
     </div>
   </div>
