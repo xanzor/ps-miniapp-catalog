@@ -58,7 +58,8 @@ function formatDateISO(iso){
 }
 
 function buildOfferListUrl({ region, q, page }) {
-  const u = new URL(`${CONFIG.DIRECTUS_URL}/items/offers`);
+  const u = new URL(`/.netlify/functions/directus`);
+  u.searchParams.set("path", "/items/offers");
   u.searchParams.set("limit", String(CONFIG.PAGE_LIMIT));
   u.searchParams.set("page", String(page));
 
