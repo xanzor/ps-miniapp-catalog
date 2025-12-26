@@ -1,47 +1,77 @@
-// ====== НАСТРОЙКИ (поменяем потом на данные друга) ======
-const DIRECTUS_URL = "https://ps-directus.onrender.com";
-const WHATSAPP_PHONE = "79635951217";   // только цифры, без +
-const TG_USERNAME = "xanzor";          // без @
-// =======================================================
+// ================== CONFIG (поменяем позже на данные друга) ==================
+const CONFIG = {
+  BRAND_TITLE: "PLAYSTORE 95",
 
-const LIMIT = 20;
+  DIRECTUS_URL: "https://ps-directus.onrender.com", // без слэша в конце
+
+  // контакты для "Купить"
+  WHATSAPP_PHONE: "79635951217", // только цифры, без +
+  TG_USERNAME: "xanzor",         // без @
+
+  PAGE_LIMIT: 20,
+};
+// ============================================================================
 
 const els = {
+  brandTitle: document.getElementById("brandTitle"),
+  hintText: document.getElementById("hintText"),
+
   region: document.getElementById("region"),
   q: document.getElementById("q"),
   apply: document.getElementById("apply"),
+  reset: document.getElementById("reset"),
+
   grid: document.getElementById("grid"),
   prev: document.getElementById("prev"),
   next: document.getElementById("next"),
   pageLabel: document.getElementById("pageLabel"),
+
   modalBackdrop: document.getElementById("modalBackdrop"),
   modalText: document.getElementById("modalText"),
   buyTg: document.getElementById("buyTg"),
   buyWa: document.getElementById("buyWa"),
+  copyText: document.getElementById("copyText"),
   closeModal: document.getElementById("closeModal"),
 };
 
+els.brandTitle.textContent = CONFIG.BRAND_TITLE;
+
 let page = 1;
 let lastOpenedMessage = "";
+let lastHadResults = false;
 
 function rub(n){
-  try { return new Intl.NumberFormat("ru-RU").format(n) + " ₽"; }
-  catch { return n + " ₽"; }
+  const num = Number(n || 0);
+  try { return new Intl.NumberFormat("ru-RU").format(num) + " ₽"; }
+  catch { return num + " ₽"; }
+}
+
+function formatDateISO(iso){
+  if (!iso) return "";
+  // iso can be "2026-01-07" or full datetime
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${dd}.${mm}.${yyyy}`;
 }
 
 function buildOfferListUrl({ region, q, page }) {
-  const u = new URL(`${DIRECTUS_URL}/items/offers`);
-  u.searchParams.set("limit", String(LIMIT));
+  const u = new URL(`${CONFIG.DIRECTUS_URL}/items/offers`);
+  u.searchParams.set("limit", String(CONFIG.PAGE_LIMIT));
   u.searchParams.set("page", String(page));
 
   // фильтры
   u.searchParams.set("filter[region][_eq]", region);
   u.searchParams.set("filter[in_stock][_eq]", "true");
-  u.searchParams.set("filter[game][title][_nnull]", "true"); // скрываем пустые игры
+
+  // не показываем пустые игры
+  u.searchParams.set("filter[game][title][_nnull]", "true");
+  u.searchParams.set("filter[game][title][_neq]", "");
 
   // поиск по названию
   if (q && q.trim()) {
-    // simple contains (case-insensitive) on title
     u.searchParams.set("filter[game][title][_icontains]", q.trim());
   }
 
@@ -69,7 +99,7 @@ function buildOfferListUrl({ region, q, page }) {
 
 function fileUrl(fileId){
   if (!fileId) return "";
-  return `${DIRECTUS_URL}/assets/${fileId}`;
+  return `${CONFIG.DIRECTUS_URL}/assets/${fileId}`;
 }
 
 function openModal(message){
@@ -82,51 +112,93 @@ function closeModal(){
   els.modalBackdrop.classList.add("hidden");
 }
 
-function openWhatsApp(text){
-  const url = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(text)}`;
+function tgOpenLink(url){
+  // В Telegram WebApp лучше так, чтобы открывалось корректно
+  const tg = window.Telegram?.WebApp;
+  if (tg && typeof tg.openLink === "function") {
+    tg.openLink(url);
+    return;
+  }
   window.open(url, "_blank", "noopener,noreferrer");
+}
+
+function openWhatsApp(text){
+  const url = `https://wa.me/${CONFIG.WHATSAPP_PHONE}?text=${encodeURIComponent(text)}`;
+  tgOpenLink(url);
 }
 
 function openTelegram(text){
-  // t.me link (в телеграм-клиенте обычно открывается)
-  const url = `https://t.me/${TG_USERNAME}?text=${encodeURIComponent(text)}`;
-  window.open(url, "_blank", "noopener,noreferrer");
+  // универсально: открывает чат с юзернеймом
+  // Параметр text поддерживается не везде, поэтому добавляем и copy-кнопку в модалке.
+  const url = `https://t.me/${CONFIG.TG_USERNAME}?text=${encodeURIComponent(text)}`;
+  tgOpenLink(url);
 }
 
-function buildBuyText({ title, region, price_rub }){
-  return [
+function buildBuyText({ title, region, price_rub, discount_percent, discount_until }){
+  const lines = [
     "Здравствуйте!",
     `Хочу купить игру: ${title}`,
     `Регион: ${region}`,
     `Цена: ${rub(price_rub)}`,
-  ].join("\n");
+  ];
+  if (discount_percent != null && discount_percent !== "" && Number(discount_percent) > 0) {
+    lines.push(`Скидка: -${Number(discount_percent)}%`);
+  }
+  if (discount_until) {
+    lines.push(`До: ${formatDateISO(discount_until)}`);
+  }
+  return lines.join("\n");
+}
+
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
 }
 
 function cardHtml(offer){
   const title = offer?.game?.title ?? "Без названия";
   const platform = offer?.game?.platform ?? "";
   const cover = fileUrl(offer?.game?.image);
+
   const price = offer?.price_rub ?? 0;
+  const region = offer?.region ?? "";
 
-  const badges = [
-    platform ? `<div class="badge">${platform}</div>` : "",
-    `<div class="badge">${offer.region}</div>`,
-  ].filter(Boolean).join("");
+  const discountPercent = offer?.discount_percent;
+  const discountUntil = offer?.discount_until;
 
-  const imgTag = cover
-    ? `<img class="cover" src="${cover}" alt="">`
-    : `<div class="cover"></div>`;
+  const badges = [];
+  if (platform) badges.push(`<div class="badge">${escapeHtml(platform)}</div>`);
+  if (region) badges.push(`<div class="badge">${escapeHtml(region)}</div>`);
+
+  if (discountPercent != null && discountPercent !== "" && Number(discountPercent) > 0) {
+    badges.push(`<div class="badge badgeDanger">-${Number(discountPercent)}%</div>`);
+  }
+  if (discountUntil) {
+    badges.push(`<div class="badge">До: ${escapeHtml(formatDateISO(discountUntil))}</div>`);
+  }
+
+  const imgBlock = cover
+    ? `<div class="coverWrap">
+         <img class="cover" src="${cover}" alt="" loading="lazy"
+              onerror="this.style.display='none'; this.parentElement.querySelector('.coverFallback').style.display='flex';" />
+         <div class="coverFallback" style="display:none;">PLAYSTORE</div>
+       </div>`
+    : `<div class="coverWrap"><div class="coverFallback">PLAYSTORE</div></div>`;
 
   return `
     <div class="card">
-      ${imgTag}
+      ${imgBlock}
       <div class="cardBody">
-        <div class="badges">${badges}</div>
+        <div class="badges">${badges.join("")}</div>
         <div class="title">${escapeHtml(title)}</div>
         <div class="priceRow">
           <div>
             <div class="price">${rub(price)}</div>
-            <div class="muted">Нажми «Купить» — откроется выбор</div>
+            <div class="sub">Нажми «Купить» — откроется выбор</div>
           </div>
           <button class="buyBtn" data-buy="1">Купить</button>
         </div>
@@ -135,30 +207,44 @@ function cardHtml(offer){
   `;
 }
 
-function escapeHtml(s){
-  return String(s)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
+function setHint(text){
+  els.hintText.textContent = text;
+}
+
+function updatePagerButtons(){
+  els.prev.disabled = page <= 1;
+  // next выключим, если точно знаем, что результатов больше нет
+  els.next.disabled = lastHadResults === false && page > 1 ? true : false;
+}
+
+function renderLoading(){
+  els.grid.innerHTML = `<div class="sub">Загрузка...</div>`;
+}
+
+function renderEmpty(){
+  els.grid.innerHTML = `<div class="sub">Ничего не найдено</div>`;
+}
+
+function renderError(statusText){
+  els.grid.innerHTML = `<div class="sub">Ошибка загрузки данных${statusText ? ` (${escapeHtml(statusText)})` : ""}.</div>`;
 }
 
 async function load(){
-  els.grid.innerHTML = `<div class="muted">Загрузка...</div>`;
+  renderLoading();
+  setHint("Загрузка…");
 
   const region = els.region.value;
   const q = els.q.value;
 
   const url = buildOfferListUrl({ region, q, page });
-  console.log("FETCH URL:", url);
 
   try {
-    const res = await fetch(url, { method: "GET" });
+    const res = await fetch(url);
     if (!res.ok) {
-      const txt = await res.text().catch(() => "");
-      console.error("HTTP ERROR:", res.status, txt);
-      els.grid.innerHTML = `<div class="muted">Ошибка загрузки: ${res.status}</div>`;
+      renderError(String(res.status));
+      setHint("Ошибка соединения с сервером");
+      lastHadResults = false;
+      updatePagerButtons();
       return;
     }
 
@@ -166,13 +252,17 @@ async function load(){
     const offers = json?.data ?? [];
 
     if (!offers.length) {
-      els.grid.innerHTML = `<div class="muted">Ничего не найдено</div>`;
+      renderEmpty();
+      setHint("Данных нет по выбранным фильтрам");
       els.pageLabel.textContent = `Стр. ${page}`;
+      lastHadResults = false;
+      updatePagerButtons();
       return;
     }
 
     els.grid.innerHTML = offers.map(cardHtml).join("");
 
+    // обработчики на "Купить"
     const cards = Array.from(els.grid.querySelectorAll(".card"));
     cards.forEach((card, idx) => {
       const offer = offers[idx];
@@ -182,23 +272,53 @@ async function load(){
           title: offer?.game?.title ?? "Игра",
           region: offer?.region ?? region,
           price_rub: offer?.price_rub ?? 0,
+          discount_percent: offer?.discount_percent ?? null,
+          discount_until: offer?.discount_until ?? null,
         });
         openModal(text);
       });
     });
 
     els.pageLabel.textContent = `Стр. ${page}`;
+    setHint(`Показано: ${offers.length} • Регион: ${region}`);
+    lastHadResults = true;
+    updatePagerButtons();
   } catch (err) {
-    console.error("FETCH FAILED:", err);
-    els.grid.innerHTML = `<div class="muted">Не удалось загрузить данные (скорее всего CORS). Открой Console (F12) → смотри ошибку.</div>`;
+    renderError("");
+    setHint("Не удалось подключиться к серверу");
+    lastHadResults = false;
+    updatePagerButtons();
   }
 }
 
-
+// UI actions
 els.apply.addEventListener("click", () => { page = 1; load(); });
+els.reset.addEventListener("click", () => {
+  els.q.value = "";
+  page = 1;
+  load();
+});
+
 els.region.addEventListener("change", () => { page = 1; load(); });
-els.prev.addEventListener("click", () => { if (page > 1) { page -= 1; load(); } });
-els.next.addEventListener("click", () => { page += 1; load(); });
+
+els.q.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    page = 1;
+    load();
+  }
+});
+
+els.prev.addEventListener("click", () => {
+  if (page > 1) {
+    page -= 1;
+    load();
+  }
+});
+
+els.next.addEventListener("click", () => {
+  page += 1;
+  load();
+});
 
 els.closeModal.addEventListener("click", closeModal);
 els.modalBackdrop.addEventListener("click", (e) => {
@@ -208,4 +328,27 @@ els.modalBackdrop.addEventListener("click", (e) => {
 els.buyWa.addEventListener("click", () => openWhatsApp(lastOpenedMessage));
 els.buyTg.addEventListener("click", () => openTelegram(lastOpenedMessage));
 
+els.copyText.addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(lastOpenedMessage);
+    els.copyText.textContent = "Скопировано ✅";
+    setTimeout(() => (els.copyText.textContent = "Скопировать текст"), 1200);
+  } catch {
+    els.copyText.textContent = "Не удалось скопировать";
+    setTimeout(() => (els.copyText.textContent = "Скопировать текст"), 1200);
+  }
+});
+
+// Telegram WebApp: немного улучшений
+(function initTelegram(){
+  const tg = window.Telegram?.WebApp;
+  if (!tg) return;
+
+  try {
+    tg.ready();
+    tg.expand();
+  } catch {}
+})();
+
+updatePagerButtons();
 load();
