@@ -151,41 +151,49 @@ async function load(){
   const q = els.q.value;
 
   const url = buildOfferListUrl({ region, q, page });
+  console.log("FETCH URL:", url);
 
-  const res = await fetch(url);
-  if (!res.ok) {
-    els.grid.innerHTML = `<div class="muted">Ошибка загрузки: ${res.status}</div>`;
-    return;
-  }
+  try {
+    const res = await fetch(url, { method: "GET" });
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "");
+      console.error("HTTP ERROR:", res.status, txt);
+      els.grid.innerHTML = `<div class="muted">Ошибка загрузки: ${res.status}</div>`;
+      return;
+    }
 
-  const json = await res.json();
-  const offers = json?.data ?? [];
+    const json = await res.json();
+    const offers = json?.data ?? [];
 
-  if (!offers.length) {
-    els.grid.innerHTML = `<div class="muted">Ничего не найдено</div>`;
-    els.pageLabel.textContent = `Стр. ${page}`;
-    return;
-  }
+    if (!offers.length) {
+      els.grid.innerHTML = `<div class="muted">Ничего не найдено</div>`;
+      els.pageLabel.textContent = `Стр. ${page}`;
+      return;
+    }
 
-  els.grid.innerHTML = offers.map(cardHtml).join("");
+    els.grid.innerHTML = offers.map(cardHtml).join("");
 
-  // навесим обработчики на "Купить"
-  const cards = Array.from(els.grid.querySelectorAll(".card"));
-  cards.forEach((card, idx) => {
-    const offer = offers[idx];
-    const btn = card.querySelector('[data-buy="1"]');
-    btn.addEventListener("click", () => {
-      const text = buildBuyText({
-        title: offer?.game?.title ?? "Игра",
-        region: offer?.region ?? region,
-        price_rub: offer?.price_rub ?? 0,
+    const cards = Array.from(els.grid.querySelectorAll(".card"));
+    cards.forEach((card, idx) => {
+      const offer = offers[idx];
+      const btn = card.querySelector('[data-buy="1"]');
+      btn.addEventListener("click", () => {
+        const text = buildBuyText({
+          title: offer?.game?.title ?? "Игра",
+          region: offer?.region ?? region,
+          price_rub: offer?.price_rub ?? 0,
+        });
+        openModal(text);
       });
-      openModal(text);
     });
-  });
 
-  els.pageLabel.textContent = `Стр. ${page}`;
+    els.pageLabel.textContent = `Стр. ${page}`;
+  } catch (err) {
+    console.error("FETCH FAILED:", err);
+    els.grid.innerHTML = `<div class="muted">Не удалось загрузить данные (скорее всего CORS). Открой Console (F12) → смотри ошибку.</div>`;
+  }
 }
+
 
 els.apply.addEventListener("click", () => { page = 1; load(); });
 els.region.addEventListener("change", () => { page = 1; load(); });
