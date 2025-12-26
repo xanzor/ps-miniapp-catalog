@@ -2,7 +2,7 @@
 const CONFIG = {
   BRAND_TITLE: "PLAYSTORE 95",
 
-  DIRECTUS_URL: "https://ps-directus.onrender.com", // без слэша в конце
+  DIRECTUS_URL: "", // без слэша в конце
 
   // контакты для "Купить"
   WHATSAPP_PHONE: "79635951217", // только цифры, без +
