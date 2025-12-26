@@ -69,7 +69,6 @@ function buildOfferListUrl({ region, q, page }) {
 
   // не показываем пустые игры
   u.searchParams.set("filter[game][title][_nnull]", "true");
-  u.searchParams.set("filter[game][title][_neq]", "");
 
   // поиск по названию
   if (q && q.trim()) {
