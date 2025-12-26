@@ -58,7 +58,7 @@ function formatDateISO(iso){
 }
 
 function buildOfferListUrl({ region, q, page }) {
-  const u = new URL(`/.netlify/functions/directus`);
+  const u = new URL(`/api/items/offers`, window.location.origin);
   u.searchParams.set("path", "/items/offers");
   u.searchParams.set("limit", String(CONFIG.PAGE_LIMIT));
   u.searchParams.set("page", String(page));
@@ -100,7 +100,7 @@ function buildOfferListUrl({ region, q, page }) {
 
 function fileUrl(fileId){
   if (!fileId) return "";
-  return `${CONFIG.DIRECTUS_URL}/assets/${fileId}`;
+  return `/api/assets/${fileId}`;
 }
 
 function openModal(message){
