@@ -46,6 +46,21 @@ select,input,button{
   outline:none;
 }
 
+select {
+  appearance: none;
+}
+
+select option{
+  background: #0e1622;
+  color: var(--text);
+}
+
+select:focus{
+  outline: 2px solid rgba(42,123,255,.35);
+  outline-offset: 2px;
+}
+
+
 input{flex:1;min-width:220px}
 button{cursor:pointer}
 button:hover{filter:brightness(1.07)}
@@ -182,6 +197,15 @@ button:disabled{opacity:.45;cursor:not-allowed}
   background:#0b1320;
   margin-bottom:12px;
 }
+
+.cover {
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+.cover.loaded {
+  opacity: 1;
+}
+
 .modalBtns{display:flex;gap:10px}
 .btnPrimary{background:var(--btn);border:none;color:white;font-weight:900;border-radius:14px;padding:12px 14px;flex:1}
 .btnGreen{background:var(--btn2);border:none;color:#06200f;font-weight:900;border-radius:14px;padding:12px 14px;flex:1}
