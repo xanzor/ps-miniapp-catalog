@@ -8,49 +8,57 @@
   <meta name="color-scheme" content="dark" />
 </head>
 <body>
-  <header class="wrap header">
-    <div class="topRow">
-      <div class="brand" id="brandTitle">PLAYSTORE 95</div>
-    </div>
 
-    <div class="controls">
-      <select id="region" aria-label="Регион">
-        <option value="TR">Регион: TR</option>
-        <option value="US">Регион: US</option>
-      </select>
-
-      <input id="q" placeholder="Поиск по названию" autocomplete="off" />
-      <button id="apply">Применить</button>
-      <button id="reset" class="ghost">Сброс</button>
-    </div>
-
-    <div class="hintRow">
-      <div class="hint" id="hintText">Каталог загружается из Directus</div>
-    </div>
-  </header>
-
-  <main class="wrap">
-    <div id="grid" class="grid"></div>
-
-    <div class="pager">
-      <button id="prev" class="pagerBtn" aria-label="Предыдущая страница">←</button>
-      <div id="pageLabel" class="pageLabel">Стр. 1</div>
-      <button id="next" class="pagerBtn" aria-label="Следующая страница">→</button>
-    </div>
-  </main>
-
-  <!-- BUY MODAL (вынесено, один стиль, центр) -->
-  <div id="buyBackdrop" class="buyModalBackdrop isHidden" role="dialog" aria-modal="true">
-    <div class="buyModalCard">
-      <div class="buyModalTitle">Куда отправить заказ?</div>
-      <div class="buyModalBtns">
-        <button id="buyTelegram" class="buyChoiceBtn buyChoiceBtn--tg">Telegram</button>
-        <button id="buyWhatsApp" class="buyChoiceBtn buyChoiceBtn--wa">WhatsApp</button>
-      </div>
-      <button id="buyClose" class="buyModalClose">Закрыть</button>
-    </div>
+<header class="wrap header">
+  <div class="topRow">
+    <div class="brand" id="brandTitle">PLAYSTORE 95</div>
   </div>
 
-  <script src="app.js"></script>
+  <div class="controls">
+    <select id="region">
+      <option value="TR">Регион: TR</option>
+      <option value="US">Регион: US</option>
+    </select>
+
+    <input id="q" placeholder="Поиск по названию" />
+    <button id="apply">Применить</button>
+    <button id="reset" class="ghost">Сброс</button>
+  </div>
+
+  <div class="hintRow">
+    <div class="hint" id="hintText">Каталог загружается…</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="grid" class="grid"></div>
+
+  <div class="pager">
+    <button id="prev" class="pagerBtn">←</button>
+    <div id="pageLabel" class="pageLabel">Стр. 1</div>
+    <button id="next" class="pagerBtn">→</button>
+  </div>
+</main>
+
+<!-- BUY MODAL -->
+<div id="buyBackdrop" class="modal hidden">
+  <div class="modalCard">
+    <div class="modalTitle">Куда отправить заказ?</div>
+
+    <div class="modalMeta">
+      <div id="buyGameTitle" class="modalGameTitle"></div>
+      <div id="buyGamePrice" class="modalGamePrice"></div>
+    </div>
+
+    <div class="modalBtns">
+      <button id="buyTelegram" class="btnTelegram">Telegram</button>
+      <button id="buyWhatsApp" class="btnWhatsApp">WhatsApp</button>
+    </div>
+
+    <button id="buyClose" class="modalClose">Закрыть</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>
