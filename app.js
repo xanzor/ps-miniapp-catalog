@@ -2,7 +2,8 @@
 const CONFIG = {
   BRAND_TITLE: "PLAYSTORE 95",
 
-  DIRECTUS_URL: "", // без слэша в конце
+  // Мы работаем через Netlify redirect proxy (/api/* -> ps-directus.onrender.com/*)
+  DIRECTUS_URL: "",
 
   // контакты для "Купить"
   WHATSAPP_PHONE: "79635951217", // только цифры, без +
@@ -25,30 +26,21 @@ const els = {
   prev: document.getElementById("prev"),
   next: document.getElementById("next"),
   pageLabel: document.getElementById("pageLabel"),
-
-  modalBackdrop: document.getElementById("modalBackdrop"),
-  modalText: document.getElementById("modalText"),
-  buyTg: document.getElementById("buyTg"),
-  buyWa: document.getElementById("buyWa"),
-  copyText: document.getElementById("copyText"),
-  closeModal: document.getElementById("closeModal"),
 };
 
 els.brandTitle.textContent = CONFIG.BRAND_TITLE;
 
 let page = 1;
-let lastOpenedMessage = "";
 let lastHadResults = false;
 
-function rub(n){
+function rub(n) {
   const num = Number(n || 0);
   try { return new Intl.NumberFormat("ru-RU").format(num) + " ₽"; }
   catch { return num + " ₽"; }
 }
 
-function formatDateISO(iso){
+function formatDateISO(iso) {
   if (!iso) return "";
-  // iso can be "2026-01-07" or full datetime
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return String(iso);
   const dd = String(d.getDate()).padStart(2, "0");
@@ -57,9 +49,19 @@ function formatDateISO(iso){
   return `${dd}.${mm}.${yyyy}`;
 }
 
+function escapeHtml(s) {
+  return String(s ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+// ====== API URLs (через /api proxy) ======
 function buildOfferListUrl({ region, q, page }) {
   const u = new URL(`/api/items/offers`, window.location.origin);
-  u.searchParams.set("path", "/items/offers");
+
   u.searchParams.set("limit", String(CONFIG.PAGE_LIMIT));
   u.searchParams.set("page", String(page));
 
@@ -75,8 +77,9 @@ function buildOfferListUrl({ region, q, page }) {
     u.searchParams.set("filter[game][title][_icontains]", q.trim());
   }
 
-  // какие поля вернуть (важно: game.*)
-  u.searchParams.set("fields",
+  // поля
+  u.searchParams.set(
+    "fields",
     [
       "id",
       "region",
@@ -97,27 +100,17 @@ function buildOfferListUrl({ region, q, page }) {
   return u.toString();
 }
 
-function fileUrl(fileId){
+function fileUrl(fileId) {
   if (!fileId) return "";
   const u = new URL(`/api/assets/${fileId}`, window.location.origin);
-  u.searchParams.set("width", "520");     // можно 400/520/640
-  u.searchParams.set("quality", "80");    // 70-85 обычно норм
-  u.searchParams.set("format", "webp");   // если не поддержится, просто убери строку
+  u.searchParams.set("width", "520");
+  u.searchParams.set("quality", "80");
+  u.searchParams.set("format", "webp"); // если вдруг не будет работать — просто удали эту строку
   return u.toString();
 }
 
-function openModal(message){
-  lastOpenedMessage = message;
-  els.modalText.textContent = message;
-  els.modalBackdrop.classList.remove("hidden");
-}
-
-function closeModal(){
-  els.modalBackdrop.classList.add("hidden");
-}
-
-function tgOpenLink(url){
-  // В Telegram WebApp лучше так, чтобы открывалось корректно
+// ====== BUY FLOW (без модалки) ======
+function tgOpenLink(url) {
   const tg = window.Telegram?.WebApp;
   if (tg && typeof tg.openLink === "function") {
     tg.openLink(url);
@@ -126,19 +119,30 @@ function tgOpenLink(url){
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
-function openWhatsApp(text){
+function openWhatsApp(text) {
   const url = `https://wa.me/${CONFIG.WHATSAPP_PHONE}?text=${encodeURIComponent(text)}`;
   tgOpenLink(url);
 }
 
-function openTelegram(text){
-  // универсально: открывает чат с юзернеймом
-  // Параметр text поддерживается не везде, поэтому добавляем и copy-кнопку в модалке.
-  const url = `https://t.me/${CONFIG.TG_USERNAME}?text=${encodeURIComponent(text)}`;
-  tgOpenLink(url);
+function openTelegram(text) {
+  // 1) Попытка автотекста через deep link (лучше на мобильном)
+  const deep = `tg://msg?text=${encodeURIComponent(text)}`;
+  tgOpenLink(deep);
+
+  // 2) Фолбэк: открыть чат (если deep link не сработал в конкретной среде)
+  const fallback = `https://t.me/${CONFIG.TG_USERNAME}`;
+  setTimeout(() => tgOpenLink(fallback), 350);
 }
 
-function buildBuyText({ title, region, price_rub, discount_percent, discount_until }){
+function chooseBuy(text) {
+  // Простое окно выбора:
+  // OK = Telegram, Cancel = WhatsApp
+  const wantTg = confirm("Куда отправить заказ?\n\nOK — Telegram\nОтмена — WhatsApp");
+  if (wantTg) openTelegram(text);
+  else openWhatsApp(text);
+}
+
+function buildBuyText({ title, region, price_rub, discount_percent, discount_until }) {
   const lines = [
     "Здравствуйте!",
     `Хочу купить игру: ${title}`,
@@ -154,16 +158,8 @@ function buildBuyText({ title, region, price_rub, discount_percent, discount_unt
   return lines.join("\n");
 }
 
-function escapeHtml(s){
-  return String(s ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-
-function cardHtml(offer){
+// ====== UI render ======
+function cardHtml(offer) {
   const title = offer?.game?.title ?? "Без названия";
   const platform = offer?.game?.platform ?? "";
   const cover = fileUrl(offer?.game?.image);
@@ -203,7 +199,7 @@ function cardHtml(offer){
         <div class="priceRow">
           <div>
             <div class="price">${rub(price)}</div>
-            <div class="sub">Нажми «Купить» — откроется выбор</div>
+            <div class="sub">Нажми «Купить» — выберешь Telegram/WhatsApp</div>
           </div>
           <button class="buyBtn" data-buy="1">Купить</button>
         </div>
@@ -212,29 +208,29 @@ function cardHtml(offer){
   `;
 }
 
-function setHint(text){
+function setHint(text) {
   els.hintText.textContent = text;
 }
 
-function updatePagerButtons(){
+function updatePagerButtons() {
   els.prev.disabled = page <= 1;
-  // next выключим, если точно знаем, что результатов больше нет
+  // если на текущей странице пусто — дальше не идём
   els.next.disabled = lastHadResults === false && page > 1 ? true : false;
 }
 
-function renderLoading(){
+function renderLoading() {
   els.grid.innerHTML = `<div class="sub">Загрузка...</div>`;
 }
 
-function renderEmpty(){
+function renderEmpty() {
   els.grid.innerHTML = `<div class="sub">Ничего не найдено</div>`;
 }
 
-function renderError(statusText){
+function renderError(statusText) {
   els.grid.innerHTML = `<div class="sub">Ошибка загрузки данных${statusText ? ` (${escapeHtml(statusText)})` : ""}.</div>`;
 }
 
-async function load(){
+async function load() {
   renderLoading();
   setHint("Загрузка…");
 
@@ -280,7 +276,7 @@ async function load(){
           discount_percent: offer?.discount_percent ?? null,
           discount_until: offer?.discount_until ?? null,
         });
-        openModal(text);
+        chooseBuy(text);
       });
     });
 
@@ -298,6 +294,7 @@ async function load(){
 
 // UI actions
 els.apply.addEventListener("click", () => { page = 1; load(); });
+
 els.reset.addEventListener("click", () => {
   els.q.value = "";
   page = 1;
@@ -325,27 +322,8 @@ els.next.addEventListener("click", () => {
   load();
 });
 
-els.closeModal.addEventListener("click", closeModal);
-els.modalBackdrop.addEventListener("click", (e) => {
-  if (e.target === els.modalBackdrop) closeModal();
-});
-
-els.buyWa.addEventListener("click", () => openWhatsApp(lastOpenedMessage));
-els.buyTg.addEventListener("click", () => openTelegram(lastOpenedMessage));
-
-els.copyText.addEventListener("click", async () => {
-  try {
-    await navigator.clipboard.writeText(lastOpenedMessage);
-    els.copyText.textContent = "Скопировано ✅";
-    setTimeout(() => (els.copyText.textContent = "Скопировать текст"), 1200);
-  } catch {
-    els.copyText.textContent = "Не удалось скопировать";
-    setTimeout(() => (els.copyText.textContent = "Скопировать текст"), 1200);
-  }
-});
-
 // Telegram WebApp: немного улучшений
-(function initTelegram(){
+(function initTelegram() {
   const tg = window.Telegram?.WebApp;
   if (!tg) return;
 
