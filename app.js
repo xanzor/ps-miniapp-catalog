@@ -242,12 +242,21 @@ async function load() {
   try {
     const res = await fetch(url);
     if (!res.ok) {
+        // Render/Upstream timeout — обычно "просыпается"
+      if (res.status === 504 || res.status === 502 || res.status === 503) {
+        setHint("Сервер просыпается… повторяю");
+        // попробуем ещё раз через 2 секунды
+        setTimeout(load, 2000);
+        return;
+      }
+
       renderError(String(res.status));
       setHint("Ошибка соединения с сервером");
       lastHadResults = false;
       updatePagerButtons();
       return;
     }
+
 
     const json = await res.json();
     const offers = json?.data ?? [];
