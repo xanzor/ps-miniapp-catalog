@@ -39,18 +39,17 @@
     </div>
   </main>
 
-  <!-- BUY MODAL -->
-<div id="buyBackdrop" class="modal hidden">
-  <div class="modalCard">
-    <div class="modalTitle">Куда отправить заказ?</div>
-    <div class="modalBtns">
-      <button id="buyTelegram" class="btnSecondary">Telegram</button>
-      <button id="buyWhatsApp" class="btnPrimary">WhatsApp</button>
+  <!-- BUY MODAL (вынесено, один стиль, центр) -->
+  <div id="buyBackdrop" class="buyModalBackdrop isHidden" role="dialog" aria-modal="true">
+    <div class="buyModalCard">
+      <div class="buyModalTitle">Куда отправить заказ?</div>
+      <div class="buyModalBtns">
+        <button id="buyTelegram" class="buyChoiceBtn buyChoiceBtn--tg">Telegram</button>
+        <button id="buyWhatsApp" class="buyChoiceBtn buyChoiceBtn--wa">WhatsApp</button>
+      </div>
+      <button id="buyClose" class="buyModalClose">Закрыть</button>
     </div>
-    <button id="buyClose" class="modalClose">Закрыть</button>
   </div>
-</div>
-
 
   <script src="app.js"></script>
 </body>
