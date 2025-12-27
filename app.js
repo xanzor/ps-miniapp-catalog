@@ -99,7 +99,11 @@ function buildOfferListUrl({ region, q, page }) {
 
 function fileUrl(fileId){
   if (!fileId) return "";
-  return `/api/assets/${fileId}`;
+  const u = new URL(`/api/assets/${fileId}`, window.location.origin);
+  u.searchParams.set("width", "520");     // можно 400/520/640
+  u.searchParams.set("quality", "80");    // 70-85 обычно норм
+  u.searchParams.set("format", "webp");   // если не поддержится, просто убери строку
+  return u.toString();
 }
 
 function openModal(message){
