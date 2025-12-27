@@ -4,20 +4,23 @@
   --text:#e7edf6;
   --muted:#a9b6c8;
   --line:#1b2a3f;
-  --chip:#0e1622;
-  --btn:#2a7bff;
-  --btn2:#22c55e;
+
+  --btnBlue:#2AABEE; /* Telegram */
+  --btnGreen:#25D366; /* WhatsApp */
+
   --danger:#ff4d4d;
 }
 
 *{box-sizing:border-box}
 html,body{height:100%}
+
 body{
   margin:0;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  background:radial-gradient(1200px 600px at 30% -10%, rgba(42,123,255,.12), transparent 60%),
-             radial-gradient(800px 500px at 80% 20%, rgba(34,197,94,.08), transparent 60%),
-             var(--bg);
+  background:
+    radial-gradient(1200px 600px at 30% -10%, rgba(42,123,255,.12), transparent 60%),
+    radial-gradient(800px 500px at 80% 20%, rgba(34,197,94,.08), transparent 60%),
+    var(--bg);
   color:var(--text);
 }
 
@@ -46,104 +49,34 @@ select,input,button{
   outline:none;
 }
 
-select {
-  appearance: none;
-}
-
-select option{
-  background: #0e1622;
-  color: var(--text);
-}
-
-select:focus{
-  outline: 2px solid rgba(42,123,255,.35);
-  outline-offset: 2px;
-}
-
-
 input{flex:1;min-width:220px}
 button{cursor:pointer}
 button:hover{filter:brightness(1.07)}
 button:disabled{opacity:.45;cursor:not-allowed}
 
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  z-index: 10000;
-}
-.modal.hidden {
-  display: none;
-}
-
-.modalCard {
-  width: 100%;
-  max-width: 360px;
-  margin: 0 16px;
-
-  background: #0f1724;
-  border-radius: 16px;
-  padding: 18px;
-
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-
-  animation: modalPop 0.18s ease-out;
-}
-@keyframes modalPop {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-.modalTitle {
-  font-size: 16px;
-  font-weight: 600;
-  text-align: center;
-  margin-bottom: 14px;
-  color: #fff;
-}
-.modalBtns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.btnPrimary, .btnSecondary{
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,.10);
-  cursor: pointer;
-  font-weight: 600;
-}
-.btnPrimary{
-  background: #22c55e;
-  color: #06210f;
-  border-color: transparent;
-}
-.btnSecondary{
-  background: rgba(255,255,255,.06);
-  color: rgba(255,255,255,.9);
-}
-.modalClose {
-  margin-top: 14px;
-  width: 100%;
-  padding: 10px;
-  border-radius: 12px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.75);
-  cursor: pointer;
+/* SELECT — максимально читабельно (но помни: option стили везде разные) */
+select{
+  appearance:none;
+  padding-right:36px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(231,237,246,.7) 50%),
+    linear-gradient(135deg, rgba(231,237,246,.7) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 3px),
+    calc(100% - 12px) calc(50% - 3px);
+  background-size:6px 6px;
+  background-repeat:no-repeat;
 }
 
+select option{
+  background:#0e1622;
+  color:var(--text);
+}
+
+select:focus{
+  outline:2px solid rgba(42,123,255,.35);
+  outline-offset:2px;
+}
 
 .ghost{
   background:transparent;
@@ -153,6 +86,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .hintRow{margin-top:10px}
 .hint{color:var(--muted);font-size:12px}
 
+/* GRID */
 .grid{
   margin-top:16px;
   display:grid;
@@ -168,12 +102,12 @@ button:disabled{opacity:.45;cursor:not-allowed}
   border:1px solid var(--line);
   border-radius:18px;
   overflow:hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,.22);
+  box-shadow:0 10px 30px rgba(0,0,0,.22);
 }
 
 .coverWrap{
   width:100%;
-  aspect-ratio: 16/10;
+  aspect-ratio:16/10;
   background:#0e1622;
   position:relative;
   overflow:hidden;
@@ -184,7 +118,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
   height:100%;
   object-fit:cover;
   display:block;
+  opacity:0;
+  transition:opacity .25s ease;
 }
+.cover.loaded{opacity:1}
 
 .coverFallback{
   width:100%;
@@ -212,12 +149,6 @@ button:disabled{opacity:.45;cursor:not-allowed}
   padding:4px 8px;
   border-radius:999px;
 }
-.badgeStrong{
-  color:#091322;
-  background:rgba(34,197,94,.95);
-  border-color:rgba(34,197,94,.4);
-  font-weight:900;
-}
 .badgeDanger{
   color:#2a0a0a;
   background:rgba(255,77,77,.95);
@@ -232,14 +163,15 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .sub{color:var(--muted);font-size:12px}
 
 .buyBtn{
-  background:var(--btn2);
+  background:var(--btnGreen);
   border:none;
-  color:#06200f;
+  color:#05210f;
   font-weight:900;
   padding:10px 14px;
   border-radius:999px;
 }
 
+/* PAGER */
 .pager{
   display:flex;align-items:center;justify-content:center;
   gap:12px;margin:18px 0;
@@ -250,42 +182,72 @@ button:disabled{opacity:.45;cursor:not-allowed}
 }
 .pageLabel{color:var(--muted)}
 
-.backdrop{
-  position:fixed; inset:0;
-  background:rgba(0,0,0,.55);
-  display:flex; align-items:center; justify-content:center;
+/* ===================== BUY MODAL (ЕДИНСТВЕННАЯ) ===================== */
+.isHidden{display:none !important;}
+
+.buyModalBackdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.62);
+  display:flex;
+  align-items:center;
+  justify-content:center;
   padding:16px;
+  z-index:99999;
 }
-.hidden{display:none}
 
-.modal{
-  width:min(520px, 100%);
-  background:#0e1622;
-  border:1px solid var(--line);
+.buyModalCard{
+  width:100%;
+  max-width:380px;
+  background:#0f1724;
   border-radius:18px;
-  padding:14px;
-  box-shadow: 0 20px 50px rgba(0,0,0,.38);
+  padding:18px;
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 24px 80px rgba(0,0,0,.60);
+  animation:modalPop .18s ease-out;
 }
-.modalTitle{font-weight:900;margin-bottom:10px}
-.modalText{
-  white-space:pre-line;
-  color:var(--text);
-  border:1px solid var(--line);
+
+@keyframes modalPop{
+  from{transform:scale(.96); opacity:0;}
+  to{transform:scale(1); opacity:1;}
+}
+
+.buyModalTitle{
+  font-size:16px;
+  font-weight:800;
+  text-align:center;
+  margin-bottom:14px;
+}
+
+.buyModalBtns{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.buyChoiceBtn{
+  width:100%;
+  padding:12px 14px;
   border-radius:14px;
-  padding:12px;
-  background:#0b1320;
-  margin-bottom:12px;
+  border:0;
+  font-weight:900;
+  color:#fff;
+  cursor:pointer;
 }
 
-.cover {
-  opacity: 0;
-  transition: opacity .25s ease;
-}
-.cover.loaded {
-  opacity: 1;
-}
+.buyChoiceBtn:active{transform:scale(.985)}
 
-.modalBtns{display:flex;gap:10px}
-.btnPrimary{background:var(--btn);border:none;color:white;font-weight:900;border-radius:14px;padding:12px 14px;flex:1}
-.btnGreen{background:var(--btn2);border:none;color:#06200f;font-weight:900;border-radius:14px;padding:12px 14px;flex:1}
-.btnGhost{width:100%;margin-top:10px;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:14px;padding:12px}
+.buyChoiceBtn--tg{background:var(--btnBlue)}
+.buyChoiceBtn--wa{background:var(--btnGreen); color:#05210f}
+
+.buyModalClose{
+  margin-top:12px;
+  width:100%;
+  padding:11px 14px;
+  border-radius:14px;
+  background:transparent;
+  border:1px solid rgba(255,255,255,.14);
+  color:rgba(255,255,255,.82);
+  cursor:pointer;
+}
+/* =================================================================== */
