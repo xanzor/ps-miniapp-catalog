@@ -78,21 +78,21 @@ function buildOfferListUrl({ region, q, page }) {
   }
 
   // поля
-  u.searchParams.set(
-    "fields",
-    [
-      "id",
-      "region",
-      "price_rub",
-      "discount_percent",
-      "discount_until",
-      "in_stock",
-      "game.id",
-      "game.title",
-      "game.platform",
-      "game.image",
-    ].join(",")
-  );
+  // u.searchParams.set(
+  //   "fields",
+  //   [
+  //     "id",
+  //     "region",
+  //     "price_rub",
+  //     "discount_percent",
+  //     "discount_until",
+  //     "in_stock",
+  //     "game.id",
+  //     "game.title",
+  //     "game.platform",
+  //     "game.image",
+  //   ].join(",")
+  // );
 
   // сортировка
   u.searchParams.set("sort", "game.title");
