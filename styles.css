@@ -66,6 +66,59 @@ button{cursor:pointer}
 button:hover{filter:brightness(1.07)}
 button:disabled{opacity:.45;cursor:not-allowed}
 
+.modal.hidden { display: none; }
+.modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+}
+.modalCard{
+  width: min(420px, 92vw);
+  background: #0f1724;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+}
+.modalTitle{
+  font-size: 16px;
+  margin-bottom: 14px;
+  color: rgba(255,255,255,.9);
+}
+.modalBtns{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.btnPrimary, .btnSecondary{
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.10);
+  cursor: pointer;
+  font-weight: 600;
+}
+.btnPrimary{
+  background: #22c55e;
+  color: #06210f;
+  border-color: transparent;
+}
+.btnSecondary{
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.9);
+}
+.modalClose{
+  margin-top: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: transparent;
+  color: rgba(255,255,255,.75);
+  cursor: pointer;
+}
+
+
 .ghost{
   background:transparent;
   color:var(--muted);
