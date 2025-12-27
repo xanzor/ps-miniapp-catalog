@@ -66,27 +66,53 @@ button{cursor:pointer}
 button:hover{filter:brightness(1.07)}
 button:disabled{opacity:.45;cursor:not-allowed}
 
-.modal.hidden { display: none; }
 .modal {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.55);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 9999;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 10000;
 }
-.modalCard{
-  width: min(420px, 92vw);
+.modal.hidden {
+  display: none;
+}
+
+.modalCard {
+  width: 100%;
+  max-width: 360px;
+  margin: 0 16px;
+
   background: #0f1724;
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 18px;
+  border-radius: 16px;
   padding: 18px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  animation: modalPop 0.18s ease-out;
 }
-.modalTitle{
+@keyframes modalPop {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.modalTitle {
   font-size: 16px;
+  font-weight: 600;
+  text-align: center;
   margin-bottom: 14px;
-  color: rgba(255,255,255,.9);
+  color: #fff;
 }
-.modalBtns{
+.modalBtns {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
@@ -107,14 +133,14 @@ button:disabled{opacity:.45;cursor:not-allowed}
   background: rgba(255,255,255,.06);
   color: rgba(255,255,255,.9);
 }
-.modalClose{
-  margin-top: 12px;
+.modalClose {
+  margin-top: 14px;
   width: 100%;
-  padding: 10px 12px;
+  padding: 10px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,.10);
   background: transparent;
-  color: rgba(255,255,255,.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.75);
   cursor: pointer;
 }
 
