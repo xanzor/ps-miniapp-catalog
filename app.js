@@ -188,6 +188,7 @@ function cardHtml(offer){
   const imgBlock = cover
     ? `<div class="coverWrap">
          <img class="cover" src="${cover}" alt="" loading="lazy"
+              onload="this.classList.add('loaded');"
               onerror="this.style.display='none'; this.parentElement.querySelector('.coverFallback').style.display='flex';" />
          <div class="coverFallback" style="display:none;">PLAYSTORE</div>
        </div>`
