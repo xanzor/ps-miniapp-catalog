@@ -60,7 +60,7 @@ function escapeHtml(s) {
 
 // ====== API URLs (через /api proxy) ======
 function buildOfferListUrl({ region, q, page }) {
-  const u = new URL(`/api/items/offers`, window.location.origin);
+  const u = new URL(/.netlify/functions/directus?path=/items/offers...`, window.location.origin);
 
   u.searchParams.set("limit", String(CONFIG.PAGE_LIMIT));
   u.searchParams.set("page", String(page));
