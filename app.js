@@ -60,7 +60,7 @@ function escapeHtml(s) {
 
 // ====== API URLs (через /api proxy) ======
 function buildOfferListUrl({ region, q, page }) {
-  const u = new URL(`/.netlify/functions/directus?path=/items/offers...`, window.location.origin);
+  const u = new URL(`/api/items/offers`, window.location.origin);
 
   u.searchParams.set("limit", String(CONFIG.PAGE_LIMIT));
   u.searchParams.set("page", String(page));
@@ -77,28 +77,18 @@ function buildOfferListUrl({ region, q, page }) {
     u.searchParams.set("filter[game][title][_icontains]", q.trim());
   }
 
-  // поля
-  // u.searchParams.set(
-  //   "fields",
-  //   [
-  //     "id",
-  //     "region",
-  //     "price_rub",
-  //     "discount_percent",
-  //     "discount_until",
-  //     "in_stock",
-  //     "game.id",
-  //     "game.title",
-  //     "game.platform",
-  //     "game.image",
-  //   ].join(",")
-  // );
-
-  // сортировка
+  // сортировка (можно оставить, если Public точно читает games.title)
   u.searchParams.set("sort", "game.title");
+
+  // поля (можно включить позже)
+  u.searchParams.set(
+    "fields",
+    "id,region,price_rub,discount_percent,discount_until,in_stock,game.id,game.title,game.platform,game.image"
+  );
 
   return u.toString();
 }
+
 
 function fileUrl(fileId) {
   if (!fileId) return "";
