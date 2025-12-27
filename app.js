@@ -2,12 +2,12 @@
 const CONFIG = {
   BRAND_TITLE: "PLAYSTORE 95",
 
-  // Работаем через Netlify redirect proxy (/api/* -> ps-directus.onrender.com/*)
+  // работаем через Netlify (function + redirects)
   DIRECTUS_URL: "",
 
   // контакты для "Купить"
   WHATSAPP_PHONE: "79635951217", // только цифры, без +
-  TG_USERNAME: "SayhanK0011",    // без @ (чат в Telegram)
+  TG_USERNAME: "xanzor",         // без @
 
   PAGE_LIMIT: 20,
 };
@@ -27,7 +27,7 @@ const els = {
   next: document.getElementById("next"),
   pageLabel: document.getElementById("pageLabel"),
 
-  // BUY MODAL (две кнопки)
+  // BUY MODAL
   buyBackdrop: document.getElementById("buyBackdrop"),
   buyTelegram: document.getElementById("buyTelegram"),
   buyWhatsApp: document.getElementById("buyWhatsApp"),
@@ -38,10 +38,9 @@ els.brandTitle.textContent = CONFIG.BRAND_TITLE;
 
 let page = 1;
 let lastHadResults = false;
-
-// хранит текст последнего "заказа" для WhatsApp
 let lastBuyText = "";
 
+// ---------- helpers ----------
 function rub(n) {
   const num = Number(n || 0);
   try { return new Intl.NumberFormat("ru-RU").format(num) + " ₽"; }
@@ -67,9 +66,35 @@ function escapeHtml(s) {
     .replaceAll("'", "&#039;");
 }
 
-// ====== API URLs (через /api proxy) ======
+function setHint(text) {
+  els.hintText.textContent = text;
+}
+
+function updatePagerButtons() {
+  els.prev.disabled = page <= 1;
+  els.next.disabled = (lastHadResults === false && page > 1);
+}
+
+function renderLoading() {
+  els.grid.innerHTML = `<div class="sub">Загрузка...</div>`;
+}
+
+function renderEmpty() {
+  els.grid.innerHTML = `<div class="sub">Ничего не найдено</div>`;
+}
+
+function renderError(statusText) {
+  els.grid.innerHTML = `<div class="sub">Ошибка загрузки данных${statusText ? ` (${escapeHtml(statusText)})` : ""}.</div>`;
+}
+
+// ---------- API ----------
 function buildOfferListUrl({ region, q, page }) {
-  const u = new URL(`/api/items/offers`, window.location.origin);
+  // ВАЖНО: у тебя должна быть Netlify function directus:
+  // /.netlify/functions/directus?path=/items/offers&limit=...&page=...
+  const u = new URL(`/.netlify/functions/directus`, window.location.origin);
+
+  // куда function должна сходить внутри себя
+  u.searchParams.set("path", "/items/offers");
 
   u.searchParams.set("limit", String(CONFIG.PAGE_LIMIT));
   u.searchParams.set("page", String(page));
@@ -86,10 +111,21 @@ function buildOfferListUrl({ region, q, page }) {
     u.searchParams.set("filter[game][title][_icontains]", q.trim());
   }
 
-  // поля (важно: game.*)
+  // поля (обязательно game.* чтобы карточки работали)
   u.searchParams.set(
     "fields",
-    "id,region,price_rub,discount_percent,discount_until,in_stock,game.id,game.title,game.platform,game.image"
+    [
+      "id",
+      "region",
+      "price_rub",
+      "discount_percent",
+      "discount_until",
+      "in_stock",
+      "game.id",
+      "game.title",
+      "game.platform",
+      "game.image",
+    ].join(",")
   );
 
   // сортировка
@@ -103,11 +139,11 @@ function fileUrl(fileId) {
   const u = new URL(`/api/assets/${fileId}`, window.location.origin);
   u.searchParams.set("width", "520");
   u.searchParams.set("quality", "80");
-  u.searchParams.set("format", "webp"); // если вдруг не будет работать — удали эту строку
+  u.searchParams.set("format", "webp"); // если где-то ломает — удали эту строку
   return u.toString();
 }
 
-// ====== BUY FLOW (две кнопки: Telegram/WhatsApp) ======
+// ---------- BUY FLOW ----------
 function tgOpenLink(url) {
   const tg = window.Telegram?.WebApp;
   if (tg && typeof tg.openLink === "function") {
@@ -123,18 +159,9 @@ function openWhatsApp(text) {
 }
 
 function openTelegramChat() {
-  // Просто открываем чат в Telegram (без автотекста)
+  // Как ты хотел: просто открыть чат с тобой
   const url = `https://t.me/${CONFIG.TG_USERNAME}`;
   tgOpenLink(url);
-}
-
-function openBuyModal(text) {
-  lastBuyText = text;
-  if (els.buyBackdrop) els.buyBackdrop.classList.remove("hidden");
-}
-
-function closeBuyModal() {
-  if (els.buyBackdrop) els.buyBackdrop.classList.add("hidden");
 }
 
 function buildBuyText({ title, region, price_rub, discount_percent, discount_until }) {
@@ -153,7 +180,32 @@ function buildBuyText({ title, region, price_rub, discount_percent, discount_unt
   return lines.join("\n");
 }
 
-// ====== UI render ======
+// ---------- BUY MODAL ----------
+function openBuyModal(text) {
+  lastBuyText = text;
+  els.buyBackdrop.classList.remove("isHidden");
+}
+
+function closeBuyModal() {
+  els.buyBackdrop.classList.add("isHidden");
+}
+
+els.buyClose.addEventListener("click", closeBuyModal);
+els.buyBackdrop.addEventListener("click", (e) => {
+  if (e.target === els.buyBackdrop) closeBuyModal();
+});
+
+els.buyWhatsApp.addEventListener("click", () => {
+  closeBuyModal();
+  openWhatsApp(lastBuyText);
+});
+
+els.buyTelegram.addEventListener("click", () => {
+  closeBuyModal();
+  openTelegramChat();
+});
+
+// ---------- UI render ----------
 function cardHtml(offer) {
   const title = offer?.game?.title ?? "Без названия";
   const platform = offer?.game?.platform ?? "";
@@ -194,7 +246,7 @@ function cardHtml(offer) {
         <div class="priceRow">
           <div>
             <div class="price">${rub(price)}</div>
-            <div class="sub">Нажми «Купить» — выбери Telegram/WhatsApp</div>
+            <div class="sub">Нажми «Купить» — выберешь Telegram/WhatsApp</div>
           </div>
           <button class="buyBtn" data-buy="1">Купить</button>
         </div>
@@ -203,34 +255,12 @@ function cardHtml(offer) {
   `;
 }
 
-function setHint(text) {
-  if (els.hintText) els.hintText.textContent = text;
-}
-
-function updatePagerButtons() {
-  if (els.prev) els.prev.disabled = page <= 1;
-  if (els.next) els.next.disabled = lastHadResults === false && page > 1 ? true : false;
-}
-
-function renderLoading() {
-  if (els.grid) els.grid.innerHTML = `<div class="sub">Загрузка...</div>`;
-}
-
-function renderEmpty() {
-  if (els.grid) els.grid.innerHTML = `<div class="sub">Ничего не найдено</div>`;
-}
-
-function renderError(statusText) {
-  if (!els.grid) return;
-  els.grid.innerHTML = `<div class="sub">Ошибка загрузки данных${statusText ? ` (${escapeHtml(statusText)})` : ""}.</div>`;
-}
-
 async function load() {
   renderLoading();
   setHint("Загрузка…");
 
-  const region = els.region?.value || "TR";
-  const q = els.q?.value || "";
+  const region = els.region.value;
+  const q = els.q.value;
 
   const url = buildOfferListUrl({ region, q, page });
 
@@ -238,7 +268,7 @@ async function load() {
     const res = await fetch(url);
 
     if (!res.ok) {
-      // таймауты/просыпание Render
+      // Render/Upstream timeout — сервер "просыпается"
       if (res.status === 504 || res.status === 502 || res.status === 503) {
         setHint("Сервер просыпается… повторяю");
         setTimeout(load, 2000);
@@ -258,7 +288,7 @@ async function load() {
     if (!offers.length) {
       renderEmpty();
       setHint("Данных нет по выбранным фильтрам");
-      if (els.pageLabel) els.pageLabel.textContent = `Стр. ${page}`;
+      els.pageLabel.textContent = `Стр. ${page}`;
       lastHadResults = false;
       updatePagerButtons();
       return;
@@ -271,8 +301,6 @@ async function load() {
     cards.forEach((card, idx) => {
       const offer = offers[idx];
       const btn = card.querySelector('[data-buy="1"]');
-      if (!btn) return;
-
       btn.addEventListener("click", () => {
         const text = buildBuyText({
           title: offer?.game?.title ?? "Игра",
@@ -281,12 +309,11 @@ async function load() {
           discount_percent: offer?.discount_percent ?? null,
           discount_until: offer?.discount_until ?? null,
         });
-
         openBuyModal(text);
       });
     });
 
-    if (els.pageLabel) els.pageLabel.textContent = `Стр. ${page}`;
+    els.pageLabel.textContent = `Стр. ${page}`;
     setHint(`Показано: ${offers.length} • Регион: ${region}`);
     lastHadResults = true;
     updatePagerButtons();
@@ -298,58 +325,40 @@ async function load() {
   }
 }
 
-// UI actions
-if (els.apply) els.apply.addEventListener("click", () => { page = 1; load(); });
+// ---------- UI actions ----------
+els.apply.addEventListener("click", () => { page = 1; load(); });
 
-if (els.reset) els.reset.addEventListener("click", () => {
-  if (els.q) els.q.value = "";
+els.reset.addEventListener("click", () => {
+  els.q.value = "";
   page = 1;
   load();
 });
 
-if (els.region) els.region.addEventListener("change", () => { page = 1; load(); });
+els.region.addEventListener("change", () => { page = 1; load(); });
 
-if (els.q) els.q.addEventListener("keydown", (e) => {
+els.q.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     page = 1;
     load();
   }
 });
 
-if (els.prev) els.prev.addEventListener("click", () => {
+els.prev.addEventListener("click", () => {
   if (page > 1) {
     page -= 1;
     load();
   }
 });
 
-if (els.next) els.next.addEventListener("click", () => {
+els.next.addEventListener("click", () => {
   page += 1;
   load();
-});
-
-// BUY MODAL handlers
-if (els.buyTelegram) els.buyTelegram.addEventListener("click", () => {
-  closeBuyModal();
-  openTelegramChat();
-});
-
-if (els.buyWhatsApp) els.buyWhatsApp.addEventListener("click", () => {
-  closeBuyModal();
-  openWhatsApp(lastBuyText);
-});
-
-if (els.buyClose) els.buyClose.addEventListener("click", closeBuyModal);
-
-if (els.buyBackdrop) els.buyBackdrop.addEventListener("click", (e) => {
-  if (e.target === els.buyBackdrop) closeBuyModal();
 });
 
 // Telegram WebApp: немного улучшений
 (function initTelegram() {
   const tg = window.Telegram?.WebApp;
   if (!tg) return;
-
   try {
     tg.ready();
     tg.expand();
