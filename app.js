@@ -78,6 +78,7 @@ async function load(){
   const data = json.data || [];
 
   els.grid.innerHTML = data.map(card).join("");
+  els.hintText.textContent = `Показано: ${data.length} • Регион: ${els.region.value}`;
   els.pageLabel.textContent = `Стр. ${page}`;
 
   document.querySelectorAll(".buyBtn").forEach((b,i)=>{
