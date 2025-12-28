@@ -39,13 +39,15 @@ function fileUrl(id){
 }
 
 function buildUrl(){
-  const u = new URL("/.netlify/functions/directus", location.origin);
-  u.searchParams.set("path", "/items/offers");
+  const u = new URL("/api/items/offers", location.origin);
   u.searchParams.set("limit", CONFIG.PAGE_LIMIT);
   u.searchParams.set("page", page);
   u.searchParams.set("filter[region][_eq]", els.region.value);
   u.searchParams.set("filter[in_stock][_eq]", "true");
-  u.searchParams.set("fields","price_rub,region,game.title,game.platform,game.image");
+  u.searchParams.set(
+    "fields",
+    "price_rub,region,game.title,game.platform,game.image"
+  );
   return u;
 }
 
@@ -76,6 +78,8 @@ async function load(){
   const data = json.data || [];
 
   els.grid.innerHTML = data.map(card).join("");
+  els.pageLabel.textContent = `Стр. ${page}`;
+
   document.querySelectorAll(".buyBtn").forEach((b,i)=>{
     b.onclick=()=>{
       const o=data[i];
@@ -90,5 +94,11 @@ async function load(){
 els.buyClose.onclick=()=>els.buyBackdrop.classList.add("hidden");
 els.buyWhatsApp.onclick=()=>location.href=`https://wa.me/${CONFIG.WHATSAPP_PHONE}?text=${encodeURIComponent(lastBuyText)}`;
 els.buyTelegram.onclick=()=>location.href=`https://t.me/${CONFIG.TG_USERNAME}`;
+
+els.apply.onclick=()=>{page=1;load();}
+els.reset.onclick=()=>{els.q.value="";page=1;load();}
+els.region.onchange=()=>{page=1;load();}
+els.prev.onclick=()=>{if(page>1){page--;load();}}
+els.next.onclick=()=>{page++;load();}
 
 load();
