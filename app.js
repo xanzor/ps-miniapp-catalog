@@ -92,6 +92,12 @@ async function load(){
   });
 }
 
+function tgOpenLink(url){
+  const tg = window.Telegram?.WebApp;
+  if (tg && typeof tg.openLink === "function") return tg.openLink(url);
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
 (function initTelegram(){
   const tg = window.Telegram?.WebApp;
   if (!tg) return;
@@ -103,8 +109,8 @@ async function load(){
 
 
 els.buyClose.onclick=()=>els.buyBackdrop.classList.add("hidden");
-els.buyWhatsApp.onclick=()=>location.href=`https://wa.me/${CONFIG.WHATSAPP_PHONE}?text=${encodeURIComponent(lastBuyText)}`;
-els.buyTelegram.onclick=()=>location.href=`https://t.me/${CONFIG.TG_USERNAME}`;
+els.buyWhatsApp.onclick = () => tgOpenLink(`https://wa.me/${CONFIG.WHATSAPP_PHONE}?text=${encodeURIComponent(lastBuyText)}`);
+els.buyTelegram.onclick = () => tgOpenLink(`https://t.me/${CONFIG.TG_USERNAME}`);
 
 els.apply.onclick=()=>{page=1;load();}
 els.reset.onclick=()=>{els.q.value="";page=1;load();}
