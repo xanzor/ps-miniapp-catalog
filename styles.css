@@ -4,8 +4,6 @@
   --text:#e7edf6;
   --muted:#a9b6c8;
   --line:#1b2a3f;
-  --btnTG:#2a7bff;
-  --btnWA:#22c55e;
 }
 
 *{box-sizing:border-box}
@@ -19,7 +17,8 @@ body{
 .wrap{max-width:980px;margin:0 auto;padding:16px}
 
 .header{
-  position:sticky;top:0;
+  position:sticky;
+  top:0;
   background:rgba(11,15,20,.9);
   backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line);
@@ -59,7 +58,11 @@ button{cursor:pointer}
   aspect-ratio:16/10;
   background:#0e1622;
 }
-.cover{width:100%;height:100%;object-fit:cover}
+.cover{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
 
 .cardBody{padding:12px}
 .badges{display:flex;gap:8px;margin-bottom:6px}
@@ -76,12 +79,26 @@ button{cursor:pointer}
 .price{font-size:18px;font-weight:900}
 
 .buyBtn{
-  background:var(--btnWA);
+  background:#22c55e;
   border:none;
   color:#06210f;
   font-weight:900;
   padding:10px 16px;
   border-radius:999px;
+}
+
+/* pager */
+.pager{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  margin:18px 0;
+}
+.pagerBtn{
+  width:44px;
+  height:44px;
+  border-radius:14px;
 }
 
 /* ===== MODAL ===== */
@@ -98,14 +115,18 @@ button{cursor:pointer}
 
 .modalCard{
   width:100%;
-  max-width:360px;
+  max-width:380px;
   background:#0f1724;
-  border-radius:16px;
+  border-radius:18px;
   padding:18px;
-  box-shadow:0 20px 60px rgba(0,0,0,.6);
+  border:1px solid rgba(255,255,255,.1);
 }
 
-.modalTitle{text-align:center;font-weight:800;margin-bottom:10px}
+.modalTitle{
+  font-weight:900;
+  text-align:center;
+  margin-bottom:10px;
+}
 
 .modalMeta{
   border:1px solid rgba(255,255,255,.1);
@@ -114,8 +135,17 @@ button{cursor:pointer}
   margin-bottom:14px;
 }
 
-.modalGameTitle{font-weight:800;font-size:14px;margin-bottom:4px}
-.modalGamePrice{font-weight:900;font-size:14px;color:var(--muted)}
+.modalGameTitle{
+  font-weight:800;
+  font-size:14px;
+  margin-bottom:4px;
+}
+
+.modalGamePrice{
+  font-weight:900;
+  font-size:14px;
+  color:var(--muted);
+}
 
 .modalBtns{
   display:grid;
@@ -124,19 +154,19 @@ button{cursor:pointer}
 }
 
 .btnTelegram{
-  background:var(--btnTG);
+  background:#2AABEE;
   border:none;
   color:#fff;
-  font-weight:800;
+  font-weight:900;
   padding:12px;
   border-radius:12px;
 }
 
 .btnWhatsApp{
-  background:var(--btnWA);
+  background:#25D366;
   border:none;
-  color:#06210f;
-  font-weight:800;
+  color:#05210f;
+  font-weight:900;
   padding:12px;
   border-radius:12px;
 }
