@@ -92,6 +92,16 @@ async function load(){
   });
 }
 
+(function initTelegram(){
+  const tg = window.Telegram?.WebApp;
+  if (!tg) return;
+  try {
+    tg.ready();
+    tg.expand();
+  } catch {}
+})();
+
+
 els.buyClose.onclick=()=>els.buyBackdrop.classList.add("hidden");
 els.buyWhatsApp.onclick=()=>location.href=`https://wa.me/${CONFIG.WHATSAPP_PHONE}?text=${encodeURIComponent(lastBuyText)}`;
 els.buyTelegram.onclick=()=>location.href=`https://t.me/${CONFIG.TG_USERNAME}`;
